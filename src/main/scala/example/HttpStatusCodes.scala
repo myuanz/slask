@@ -1,10 +1,11 @@
 package example
 
-abstract class HttpStatusCodes{
+trait HttpStatusCodes{
   val statusCode: Int
   val description: String
 }
-case class OK() extends HttpStatusCodes {
+
+object OK extends HttpStatusCodes {
   override val statusCode: Int = 200
   override val description: String = "OK"
 }
