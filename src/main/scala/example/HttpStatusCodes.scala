@@ -1,6 +1,6 @@
 package example
 
-trait HttpStatusCodes{
+abstract class HttpStatusCodes{
   val statusCode: Int
   val description: String
 }
