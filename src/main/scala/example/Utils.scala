@@ -29,7 +29,7 @@ class HttpClient() {
     while (true) {
       try {
         val socket = this.socket.accept
-        println("conn: " + socket.getRemoteSocketAddress)
+//        println("conn: " + socket.getRemoteSocketAddress)
 
         val in_buffer = new BufferedReader(new InputStreamReader(socket.getInputStream));
 
@@ -54,7 +54,7 @@ class HttpClient() {
               if (line == null || line == "") {
                 flag = false
               } else {
-                println("got: " + line)
+//                println("got: " + line)
                 val key :: value :: _ = """(.+): (.+)$""".r.findAllMatchIn(line).next.subgroups
                 context.set(key, value)
               }
