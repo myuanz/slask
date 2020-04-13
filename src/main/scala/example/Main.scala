@@ -11,6 +11,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val port = 20006
     val app = new HttpClient
+    app.blueprints = app.blueprints :+ MainView().view
     app.run(port = port)
   }
 }

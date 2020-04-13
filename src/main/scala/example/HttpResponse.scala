@@ -36,7 +36,7 @@ class Response extends ResponseTrait {
   override def buildBody: String = "Empty Body"
 }
 
-case class HTMLResponse(title: String, content: String, style: String = "", script: String = "", links: List[String]) extends Response {
+class HTMLResponse(title: String, var content: String="", style: String = "", script: String = "", links: Option[List[String]]=None) extends Response {
   // HTML响应
   override val content_type: String = "text/html"
 
@@ -60,8 +60,11 @@ case class HTMLResponse(title: String, content: String, style: String = "", scri
        |""".stripMargin
 }
 
+class ExceptionResponse(httpStatusCodes: HttpStatusCodes) extends HTMLResponse(
+  httpStatusCodes.statusCode.toString, s"<h1>${httpStatusCodes.description}</h1>"
+){}
 
-case class JSONResponse(json: String) extends Response {
+class JSONResponse(json: String) extends Response {
   // JSON响应
   override val content_type: String = "application/json"
   override def buildBody: String = json

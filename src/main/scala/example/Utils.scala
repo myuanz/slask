@@ -6,17 +6,21 @@ import java.net.{InetSocketAddress, ServerSocket, SocketAddress}
 
 class Context {
   // 触发响应函数的上下文
-  val attributes: Map[String, String] = Map[String, String]()
+  var header: Map[String, String] = Map[String, String]()
+  var body: String = ""
 
   def get(key: String): Option[String] = {
-    attributes.get(key)
+    header.get(key)
+  }
+  def set(key: String, value: String): Unit = {
+    header = header ++ Map(key -> value)
   }
 }
 
 
 class HttpClient() {
   var socket: ServerSocket = new ServerSocket
-  var routes: Array[Router] = new Array[Router](0)
+  var blueprints: Array[Blueprints] = new Array[Blueprints](0)
 
   def run(host: String = "127.0.0.1", port: Int = 5000, timeout: Int = 0): Unit = {
 
@@ -28,27 +32,37 @@ class HttpClient() {
         println("conn: " + socket.getRemoteSocketAddress)
 
         val in_buffer = new BufferedReader(new InputStreamReader(socket.getInputStream));
-        val out_buffer = new StringBuilder
-        out_buffer.append("HTTP/1.0 200 OK\r\n\r\n")
-        out_buffer.append("<h1>header</h1>")
 
-        var flag = true
-        var line_count = 0
-        while (flag) {
-          //接收从客户端发送过来的数据
-          val str = in_buffer.readLine()
-          if (str == null || str == "") {
-            flag = false
-          } else {
-            println("got: " + str)
-            if (line_count==0){
-
-            }
-            out_buffer.append(str + "<br/>")
-          }
-        }
+        val first_line = in_buffer.readLine()
         val outputStream = socket.getOutputStream
-        outputStream.write(out_buffer.toString.getBytes)
+
+        (blueprints
+          .map(_.matchPath(first_line))
+          .reduce(_ ++ _) match {
+          case Array(i, _*) => i
+          case _ => new ExceptionResponse(NotFound())
+        }) match {
+          case f: (Context => Response) =>
+            val context: Context = new Context()
+            var flag = true
+            var continuousRNCount: Int = 0
+
+            while (flag) {
+              //接收从客户端发送过来的数据
+              val line = in_buffer.readLine()
+
+              if (line == null || line == "") {
+                flag = false
+              } else {
+                println("got: " + line)
+                val key :: value :: _ = """(.+): (.+)$""".r.findAllMatchIn(line).next.subgroups
+                context.set(key, value)
+              }
+            }
+            outputStream.write(f(context).toResponseText.getBytes)
+          case er: ExceptionResponse =>
+            outputStream.write(er.toResponseText.getBytes)
+        }
         outputStream.close()
         socket.close()
       }
