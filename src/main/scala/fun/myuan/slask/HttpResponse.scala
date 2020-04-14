@@ -1,5 +1,7 @@
 package fun.myuan.slask
 
+import java.io._
+
 trait ResponseTrait {
   val content_type: String
   var charset: String = "UTF-8"
@@ -13,9 +15,9 @@ trait ResponseTrait {
 
   def buildHeader: String
 
-  def buildBody: String
+  def buildBody: Array[Byte]
 
-  def toResponseText: String = buildHeader + "\r\n\r\n" + buildBody
+  def toResponseBytes: Array[Byte] = (buildHeader + "\r\n\r\n").getBytes("utf-8") ++ buildBody
 }
 
 class Response extends ResponseTrait {
@@ -33,14 +35,14 @@ class Response extends ResponseTrait {
        |""".stripMargin.replaceAll("\n", "\r\n")
   }
 
-  override def buildBody: String = "Empty Body"
+  override def buildBody: Array[Byte] = "Empty Body".getBytes("utf-8")
 }
 
 class HTMLResponse(title: String, var content: String="", style: String = "", script: String = "", links: Option[List[String]]=None) extends Response {
   // HTML响应
   override val content_type: String = "text/html"
 
-  override def buildBody: String =
+  override def buildBody: Array[Byte] =
     s"""<!DOCTYPE html>
        |<html lang="zh-CN">
        |<head>
@@ -57,7 +59,7 @@ class HTMLResponse(title: String, var content: String="", style: String = "", sc
        |<body>
        |  ${content}
        |</body>
-       |""".stripMargin
+       |""".stripMargin.getBytes("utf-8")
 }
 
 class ExceptionResponse(httpStatusCodes: HttpStatusCodes) extends HTMLResponse(
@@ -67,5 +69,19 @@ class ExceptionResponse(httpStatusCodes: HttpStatusCodes) extends HTMLResponse(
 class JSONResponse(json: String) extends Response {
   // JSON响应
   override val content_type: String = "application/json"
-  override def buildBody: String = json
+  override def buildBody: Array[Byte] = json.getBytes("utf-8")
+}
+
+class StaticResponse(fileName: String, fileType: Option[String]=None) extends Response {
+  // 静态文件响应
+  val MIMEType: String = fileType.getOrElse(Utils.FileNameToHTTPType("filePath"))
+
+  override val content_type: String = "application/json"
+  override def buildBody: Array[Byte] = {
+    val file = new File(fileName)
+    val in = new FileInputStream(file)
+    val bytes = new Array[Byte](file.length.toInt)
+    in.read(bytes)
+    bytes
+  }
 }
