@@ -1,4 +1,4 @@
-package example
+package fun.myuan.slask
 
 import java.io.{BufferedReader, InputStream, InputStreamReader, OutputStream}
 import java.net.{InetSocketAddress, ServerSocket, SocketAddress}

@@ -4,7 +4,7 @@ import java.io.{BufferedReader, InputStreamReader, OutputStream}
 import java.net.ServerSocket
 import java.net.Socket
 import java.text.SimpleDateFormat
-import example.HttpClient
+import fun.myuan.slask._
 
 
 object Main {

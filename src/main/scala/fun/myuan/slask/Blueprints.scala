@@ -1,4 +1,4 @@
-package example
+package fun.myuan.slask
 
 
 import scala.util.matching.Regex

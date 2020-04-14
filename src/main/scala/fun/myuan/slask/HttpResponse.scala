@@ -1,4 +1,4 @@
-package example
+package fun.myuan.slask
 
 trait ResponseTrait {
   val content_type: String

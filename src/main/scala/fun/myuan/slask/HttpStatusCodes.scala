@@ -1,4 +1,4 @@
-package example
+package fun.myuan.slask
 
 abstract class HttpStatusCodes{
   val statusCode: Int
