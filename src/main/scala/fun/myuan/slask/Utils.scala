@@ -19,18 +19,26 @@ class URL(startLine: String) {
     }
     params
   }
-
 }
-
+class Form(body: String) {
+  var form: Map[String, String] = Map()
+  if (body != null && body != ""){
+    for (param <- body.split("&")){
+      val key::value::_ = param.split("=").toList
+      form = form ++ Map(URLDecoder.decode(key, "utf-8") -> URLDecoder.decode(value, "utf-8"))
+    }
+  }
+  def get(key: String, default: String): String = form.getOrElse(key, default)
+}
 class Context {
   // 触发响应函数的上下文
   var sourceText: String = ""
   var startLine: String = ""
   var header: Map[String, String] = Map[String, String]()
-  var body: String = ""
+  var body: Array[Char] = "".toCharArray
 
   def url(): URL = new URL(startLine)
-
+  def form(): Form = new Form(body.mkString)
   def getHeader(key: String, default: String = ""): String = {
     header.getOrElse(key, default)
   }

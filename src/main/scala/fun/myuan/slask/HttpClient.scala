@@ -17,10 +17,9 @@ class HttpClient() {
     while (true) {
       try {
         val socket = this.socket.accept
-        //        println("conn: " + socket.getRemoteSocketAddress)
+//        println("conn: " + socket.getRemoteSocketAddress)
 
         val in_buffer = new BufferedReader(new InputStreamReader(socket.getInputStream));
-
         val startLine = in_buffer.readLine()
         val outputStream = socket.getOutputStream
 
@@ -60,20 +59,37 @@ class HttpClient() {
   def buildContext(in_buffer: BufferedReader): Context ={
     var flag = true
     val context: Context = new Context
-
+    var continuousBlankCount = 0
     while (flag) {
       //接收从客户端发送过来的数据
       val line = in_buffer.readLine()
 
-      if (line == null || line == "") {
+//      println("got: " + line)
+      if (line == null) {
         flag = false
+      } else if (line == "") {
+        continuousBlankCount += 1
+        flag = false
+        if (continuousBlankCount == 2)
+          flag = false
       } else {
-        // println("got: " + line)
         val key :: value :: _ = """(.+): (.+)$""".r.findAllMatchIn(line).next.subgroups
         context.setHeader(key, value)
         context.sourceText += line + "\r\n"
+        continuousBlankCount = 0
       }
     }
+
+    if (context.getHeader("Content-Length") != ""){
+      val length = context.getHeader("Content-Length").toInt
+
+      val bytes = new Array[Char](length)
+      in_buffer.read(bytes, 0, length)
+      context.body = bytes
+      context.sourceText += "\r\n" + bytes.mkString
+    }
+
+    println(context.body.mkString)
     context
   }
 }

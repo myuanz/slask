@@ -18,7 +18,7 @@ class BaseView() extends HTMLResponse("Index") {
 
   content =
     s"""<nav class="navbar navbar-expand-lg navbar-light bg-light">
-       |  <a class="navbar-brand" href="#">Index</a>
+       |  <a class="navbar-brand" href="/">Index</a>
        |  <div class="collapse navbar-collapse" id="navbarSupportedContent">
        |    <ul class="navbar-nav mr-auto">
        |      <li class="nav-item">
@@ -38,7 +38,7 @@ class Form(title: String, action: String="", showRegister: Boolean=false) {
   def basicForm: String =
     s"""<h1>${title}</h1>
       |<div class='login-form'>
-      |  <form action="${action}" method="get">
+      |  <form action="${action}" method="post">
       |  <div class="form-group">
       |    <label for="email">邮箱</label>
       |    <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="name@example.com" value="admin@myuan.fun">
@@ -69,8 +69,8 @@ class Login(context: Context) extends BaseView {
 
     println(context.url().path, context.url().method, context.url().params())
 
-    if(context.url().params().getOrElse("email", "") != ""){
-      _newContent = s"欢迎你: ${context.url.params.getOrElse("email", "")}"
+    if(context.form().get("email", "") != ""){
+      _newContent = s"欢迎你: ${context.form().get("email", "")}"
     }
     _newContent
   }
@@ -82,8 +82,8 @@ case class MainView() {
   var view = new Blueprints
   view.+=(Router("GET", "/", context => new Index(context)))
   view.+=(Router("GET", "/register", context => new Register(context)))
-  view.+=(Router("GET", "/Login", context => new Login(context)))
-  view.+=(Router("GET", "/Register", context => new RegisterPost(context)))
+  view.+=(Router("POST", "/Login", context => new Login(context)))
+  view.+=(Router("POST", "/Register", context => new RegisterPost(context)))
   view.+=(Router("GET", "/favicon.ico", context => new StaticResponse("favicon.ico")))
 
 }
