@@ -32,13 +32,13 @@ class Response extends ResponseTrait {
        |Content-Length: ${content_length}
        |Content-type: ${content_type}; charset: ${charset}
        |Server: ${server_name}
-       |""".stripMargin.replaceAll("\n", "\r\n")
+       |""".stripMargin.replaceAll("\\n", "\\r\\n")
   }
 
   override def buildBody: Array[Byte] = "Empty Body".getBytes("utf-8")
 }
 
-class HTMLResponse(title: String, var content: String="", style: String = "", script: String = "", links: Option[List[String]]=None) extends Response {
+class HTMLResponse(title: String, var content: String = "", style: String = "", script: String = "", links: Option[List[String]] = None) extends Response {
   // HTML响应
   override val content_type: String = "text/html"
 
@@ -64,21 +64,31 @@ class HTMLResponse(title: String, var content: String="", style: String = "", sc
 
 class ExceptionResponse(httpStatusCodes: HttpStatusCodes) extends HTMLResponse(
   httpStatusCodes.statusCode.toString, s"<h1>${httpStatusCodes.description}</h1>"
-){}
+) {}
 
 class JSONResponse(json: String) extends Response {
   // JSON响应
   override val content_type: String = "application/json"
+
   override def buildBody: Array[Byte] = json.getBytes("utf-8")
 }
 
-class StaticResponse(fileName: String, fileType: Option[String]=None) extends Response {
+class StaticResponse(fileName: String, fileType: Option[String] = None) extends Response {
   // 静态文件响应
-  val MIMEType: String = fileType.getOrElse(Utils.FileNameToHTTPType("filePath"))
+  val MIMEType: String = fileType.getOrElse(Utils.FileNameToHTTPType(
+    fileName.split("[.]").reverse match {
+      case Array(i, _*) => i
+      case _ => "unknown"
+    }
+  ))
+  println(fileName.split("[.]").reverse match {
+    case Array(i, _*) => i
+    case _ => "unknown"
+  }, MIMEType)
+  override val content_type: String = MIMEType
 
-  override val content_type: String = "application/json"
   override def buildBody: Array[Byte] = {
-    val file = new File(fileName)
+    val file = new File(System.getProperty("user.dir") + "/" + Config.staticPath + '/' + fileName)
     val in = new FileInputStream(file)
     val bytes = new Array[Byte](file.length.toInt)
     in.read(bytes)

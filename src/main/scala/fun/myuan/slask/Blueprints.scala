@@ -15,14 +15,8 @@ class Blueprints {
   def matchPath(startLine: String): Array[(Context) => Response] = {
     val reg: Regex = """([A-Z]+) (/.*) HTTP/\d\.\d$""".r
     val method :: path :: _ = reg.findAllMatchIn(startLine).next.subgroups
-
-    for (route <- routers) yield {
-      route match {
-        case r: Router if method == r.method && path == r.path => route.responseFunction
-        case r: Router if path == r.path => this.methodNotAllowedResponseFunction _
-        case _ => this.notFoundResponseFunction _
-      }
-    }
+    println(s"method: ${method}, path: ${path}", routers.length)
+    routers.filter(x=>x.method==method && x.path==path).map(_.responseFunction)
   }
 
   def +=(router: Router): Unit = {
