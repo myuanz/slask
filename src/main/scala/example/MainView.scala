@@ -62,13 +62,18 @@ class Register(context: Context) extends BaseView {
 }
 
 class Login(context: Context) extends BaseView {
-  var _newContent = "未找到数据"
-  if (context.body != ""){
-    val email::password::_ = context.body.split("[&]").map(URLDecoder.decode(_, "utf-8")).toList
-    _newContent = s"登录成功, ${email}, ${password}"
-  }
 
-  override def newContent(): String = _newContent
+
+  override def newContent(): String = {
+    var _newContent = "未找到数据"
+
+    println(context.url().path, context.url().method, context.url().params())
+
+    if(context.url().params().getOrElse("email", "") != ""){
+      _newContent = s"欢迎你: ${context.url.params.getOrElse("email", "")}"
+    }
+    _newContent
+  }
 }
 class RegisterPost(context: Context) extends BaseView {
   override def newContent(): String = "注册成功"
@@ -77,8 +82,8 @@ case class MainView() {
   var view = new Blueprints
   view.+=(Router("GET", "/", context => new Index(context)))
   view.+=(Router("GET", "/register", context => new Register(context)))
-  view.+=(Router("POST", "/Login", context => new Login(context)))
-  view.+=(Router("POST", "/Register", context => new RegisterPost(context)))
+  view.+=(Router("GET", "/Login", context => new Login(context)))
+  view.+=(Router("GET", "/Register", context => new RegisterPost(context)))
   view.+=(Router("GET", "/favicon.ico", context => new StaticResponse("favicon.ico")))
 
 }

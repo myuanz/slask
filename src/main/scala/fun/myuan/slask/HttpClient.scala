@@ -21,11 +21,11 @@ class HttpClient() {
 
         val in_buffer = new BufferedReader(new InputStreamReader(socket.getInputStream));
 
-        val first_line = in_buffer.readLine()
+        val startLine = in_buffer.readLine()
         val outputStream = socket.getOutputStream
 
         (blueprints
-          .map(_.matchPath(first_line))
+          .map(_.matchPath(startLine))
           .reduce(_ ++ _) match {
           case Array(i, _*) => i
           case _ => new ExceptionResponse(NotFound())
@@ -36,7 +36,10 @@ class HttpClient() {
               buildContext(in_buffer)
             }
             context onComplete{
+
               case Success(value) =>
+                value.startLine = startLine
+
                 outputStream.write(f(value).toResponseBytes)
                 outputStream.close()
                 socket.close()
@@ -67,7 +70,8 @@ class HttpClient() {
       } else {
         // println("got: " + line)
         val key :: value :: _ = """(.+): (.+)$""".r.findAllMatchIn(line).next.subgroups
-        context.set(key, value)
+        context.setHeader(key, value)
+        context.sourceText += line + "\r\n"
       }
     }
     context
