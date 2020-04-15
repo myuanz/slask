@@ -1,19 +1,41 @@
 package fun.myuan.slask
 
 import java.io.{BufferedReader, InputStream, InputStreamReader, OutputStream}
-import java.net.{InetSocketAddress, ServerSocket, SocketAddress}
+import java.net.{InetSocketAddress, ServerSocket, SocketAddress, URLDecoder}
 
+import scala.util.matching.Regex
+
+class URL(startLine: String) {
+  val reg: Regex = """([A-Z]+) (.+?)([?].+?)* HTTP/\d\.\d$""".r
+  val method :: path :: _paramsText :: _ = reg.findAllMatchIn(startLine).next.subgroups
+
+  def params(): Map[String, String] = {
+    var params: Map[String, String] = Map()
+    if (_paramsText != null && _paramsText != ""){
+      for (param <- _paramsText.substring(1).split("&")){
+        val key::value::_ = param.split("=").toList
+        params = params ++ Map(URLDecoder.decode(key, "utf-8") -> URLDecoder.decode(value, "utf-8"))
+      }
+    }
+    params
+  }
+
+}
 
 class Context {
   // 触发响应函数的上下文
+  var sourceText: String = ""
+  var startLine: String = ""
   var header: Map[String, String] = Map[String, String]()
-  def body: String = get("body")
+  var body: String = ""
 
-  def get(key: String, default: String=""): String = {
+  def url(): URL = new URL(startLine)
+
+  def getHeader(key: String, default: String = ""): String = {
     header.getOrElse(key, default)
   }
 
-  def set(key: String, value: String): Unit = {
+  def setHeader(key: String, value: String): Unit = {
     header = header ++ Map(key -> value)
   }
 }
