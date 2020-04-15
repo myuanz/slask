@@ -38,8 +38,39 @@ class Response extends ResponseTrait {
   override def buildBody: Array[Byte] = "Empty Body".getBytes("utf-8")
 }
 
-class HTMLResponse(title: String, var content: String = "", style: String = "", script: String = "", links: Option[List[String]] = None) extends Response {
+class HTMLResponse(
+                    var title: String = "title",
+                    var content: String = "",
+                    var style: String = "",
+                    var script: String = "",
+                    var links: Option[Array[String]] = None
+                  ) extends Response {
   // HTML响应
+
+  def addLink(rel: String = "", href: String = "", options: Map[String, String] = Map()): Unit = {
+    var _options = options
+
+    _options = _options ++ Map("rel" -> _options.getOrElse("rel", rel))
+    _options = _options ++ Map("href" -> _options.getOrElse("href", href))
+
+    val optionsStr: String = _options.map(x => s"${x._1}='${x._2}'").mkString(" ")
+    val str: String = s"<link ${optionsStr}/>"
+    links = Option[Array[String]](
+      links.getOrElse(new Array[String](0)) :+ str
+    )
+  }
+
+  def addScript(src: String = "", options: Map[String, String] = Map()): Unit = {
+    var _options = options
+
+    _options = _options ++ Map("src" -> _options.getOrElse("src", src))
+    val optionsStr: String = _options.map(x => s"${x._1}='${x._2}'").mkString(" ")
+    val str: String = s"<script ${optionsStr}></script>"
+    links = Option[Array[String]](
+      links.getOrElse(new Array[String](0)) :+ str
+    )
+  }
+
   override val content_type: String = "text/html"
 
   override def buildBody: Array[Byte] =
@@ -54,7 +85,7 @@ class HTMLResponse(title: String, var content: String = "", style: String = "", 
        |  <script type="text/javascript">
        |    ${script}
        |  </script>
-       |  ${links.mkString("\r\n")}
+       |  ${links.getOrElse(new Array[String](0)).mkString("\r\n")}
        |</head>
        |<body>
        |  ${content}
@@ -81,10 +112,10 @@ class StaticResponse(fileName: String, fileType: Option[String] = None) extends 
       case _ => "unknown"
     }
   ))
-//  println(fileName.split("[.]").reverse match {
-//    case Array(i, _*) => i
-//    case _ => "unknown"
-//  }, MIMEType)
+  //  println(fileName.split("[.]").reverse match {
+  //    case Array(i, _*) => i
+  //    case _ => "unknown"
+  //  }, MIMEType)
   override val content_type: String = MIMEType
 
   override def buildBody: Array[Byte] = {

@@ -7,10 +7,10 @@ import java.net.{InetSocketAddress, ServerSocket, SocketAddress}
 class Context {
   // 触发响应函数的上下文
   var header: Map[String, String] = Map[String, String]()
-  var body: String = ""
+  def body: String = get("body")
 
-  def get(key: String): Option[String] = {
-    header.get(key)
+  def get(key: String, default: String=""): String = {
+    header.getOrElse(key, default)
   }
 
   def set(key: String, value: String): Unit = {
