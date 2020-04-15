@@ -81,10 +81,10 @@ class StaticResponse(fileName: String, fileType: Option[String] = None) extends 
       case _ => "unknown"
     }
   ))
-  println(fileName.split("[.]").reverse match {
-    case Array(i, _*) => i
-    case _ => "unknown"
-  }, MIMEType)
+//  println(fileName.split("[.]").reverse match {
+//    case Array(i, _*) => i
+//    case _ => "unknown"
+//  }, MIMEType)
   override val content_type: String = MIMEType
 
   override def buildBody: Array[Byte] = {

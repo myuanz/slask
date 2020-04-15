@@ -2,6 +2,10 @@ package fun.myuan.slask
 import java.io.{BufferedReader, InputStream, InputStreamReader, OutputStream}
 import java.net.{InetSocketAddress, ServerSocket, SocketAddress}
 
+import scala.util.{Failure, Success}
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+
 class HttpClient() {
   var socket: ServerSocket = new ServerSocket
   var blueprints: Array[Blueprints] = new Array[Blueprints](0)
@@ -27,33 +31,45 @@ class HttpClient() {
           case _ => new ExceptionResponse(NotFound())
         }) match {
           case f: (Context => Response) =>
-            val context: Context = new Context()
-            var flag = true
-            var continuousRNCount: Int = 0
 
-            while (flag) {
-              //接收从客户端发送过来的数据
-              val line = in_buffer.readLine()
-
-              if (line == null || line == "") {
-                flag = false
-              } else {
-                // println("got: " + line)
-                val key :: value :: _ = """(.+): (.+)$""".r.findAllMatchIn(line).next.subgroups
-                context.set(key, value)
-              }
+            val context: Future[Context] = Future {
+              buildContext(in_buffer)
             }
-            outputStream.write(f(context).toResponseBytes)
+            context onComplete{
+              case Success(value) =>
+                outputStream.write(f(value).toResponseBytes)
+                outputStream.close()
+                socket.close()
+              case Failure(exception) => outputStream.write(exception.getLocalizedMessage.getBytes("utf-8"))
+            }
           case er: ExceptionResponse =>
             outputStream.write(er.toResponseBytes)
+            outputStream.close()
+            socket.close()
+
         }
-        outputStream.close()
-        socket.close()
       }
       catch {
         case e: Throwable => println(e)
       }
     }
   }
+  def buildContext(in_buffer: BufferedReader): Context ={
+    var flag = true
+    val context: Context = new Context
 
+    while (flag) {
+      //接收从客户端发送过来的数据
+      val line = in_buffer.readLine()
+
+      if (line == null || line == "") {
+        flag = false
+      } else {
+        // println("got: " + line)
+        val key :: value :: _ = """(.+): (.+)$""".r.findAllMatchIn(line).next.subgroups
+        context.set(key, value)
+      }
+    }
+    context
+  }
 }
