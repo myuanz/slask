@@ -11,25 +11,28 @@ class URL(startLine: String) {
 
   def params(): Map[String, String] = {
     var params: Map[String, String] = Map()
-    if (_paramsText != null && _paramsText != ""){
-      for (param <- _paramsText.substring(1).split("&")){
-        val key::value::_ = param.split("=").toList
+    if (_paramsText != null && _paramsText != "") {
+      for (param <- _paramsText.substring(1).split("&")) {
+        val key :: value :: _ = param.split("=").toList
         params = params ++ Map(URLDecoder.decode(key, "utf-8") -> URLDecoder.decode(value, "utf-8"))
       }
     }
     params
   }
 }
+
 class Form(body: String) {
   var form: Map[String, String] = Map()
-  if (body != null && body != ""){
-    for (param <- body.split("&")){
-      val key::value::_ = param.split("=").toList
+  if (body != null && body != "") {
+    for (param <- body.split("&")) {
+      val key :: value :: _ = param.split("=").toList
       form = form ++ Map(URLDecoder.decode(key, "utf-8") -> URLDecoder.decode(value, "utf-8"))
     }
   }
-  def get(key: String, default: String): String = form.getOrElse(key, default)
+
+  def get(key: String, default: String=""): String = form.getOrElse(key, default)
 }
+
 class Context {
   // 触发响应函数的上下文
   var sourceText: String = ""
@@ -38,7 +41,9 @@ class Context {
   var body: Array[Char] = "".toCharArray
 
   def url(): URL = new URL(startLine)
+
   def form(): Form = new Form(body.mkString)
+
   def getHeader(key: String, default: String = ""): String = {
     header.getOrElse(key, default)
   }
@@ -132,5 +137,16 @@ object Utils {
     )
     basicMIMETypesMap.getOrElse(extName, "application/octet-stream")
   }
+
+  def md5HashString(s: String): String = {
+    import java.security.MessageDigest
+    import java.math.BigInteger
+    val md = MessageDigest.getInstance("MD5")
+    val digest = md.digest(s.getBytes)
+    val bigInt = new BigInteger(1, digest)
+    val hashedString = bigInt.toString(16)
+    hashedString
+  }
 }
+
 
