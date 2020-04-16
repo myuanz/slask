@@ -2,7 +2,8 @@ package example
 
 
 import fun.myuan.slask._
-import java.net.URLDecoder
+
+import scala.util.control.Exception
 
 
 class BaseView() extends HTMLResponse("Index") {
@@ -34,43 +35,31 @@ class BaseView() extends HTMLResponse("Index") {
        |<div class='container' style='padding: 5%'>${newContent()}</div>
        |""".stripMargin
 }
-class Form(title: String, action: String="", showRegister: Boolean=false) {
-  def basicForm: String =
-    s"""<h1>${title}</h1>
-      |<div class='login-form'>
-      |  <form action="${action}" method="post">
-      |  <div class="form-group">
-      |    <label for="email">邮箱</label>
-      |    <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="name@example.com" value="admin@myuan.fun">
-      |  </div>
-      |  <div class="form-group">
-      |    <label for="password">密码</label>
-      |    <input type="password" class="form-control" id="password" name="password" required>
-      |  </div>
-      |  <button type="submit" class="btn btn-primary">${title}</button>
-      |  ${if (showRegister) "<text>没有账号? <a href='register'>注册</a></text>" else ""}
-      |  </form>
-      |</div>
-      |""".stripMargin
-}
 
 class Index(context: Context) extends BaseView {
-  override def newContent(): String = new Form("登录", "Login", showRegister = true).basicForm
+  Components
+  override def newContent(): String = Components.FormCompt("登录", "Login", showRegister = true)
 }
 class Register(context: Context) extends BaseView {
-  override def newContent(): String = new Form("注册", "Register").basicForm
+  override def newContent(): String = Components.FormCompt("注册", "Register")
 }
 
 class Login(context: Context) extends BaseView {
-
-
+  
   override def newContent(): String = {
     var _newContent = "未找到数据"
 
-    println(context.url().path, context.url().method, context.url().params())
+    println(context.url().path, context.url().method, context.form().form)
 
-    if(context.form().get("email", "") != ""){
+    try {
+      val form = context.form()
+      Users.checkPassword(form.get("email"), form.get("password"))
       _newContent = s"欢迎你: ${context.form().get("email", "")}"
+
+    } catch {
+      case EmailError(msg) =>
+    }
+    if(context.form().get("email", "") != ""){
     }
     _newContent
   }
