@@ -3,9 +3,6 @@ package example
 
 import fun.myuan.slask._
 
-import scala.util.control.Exception
-
-
 class BaseView() extends HTMLResponse("Index") {
   addLink(
     "stylesheet",
@@ -48,7 +45,7 @@ class Login(context: Context) extends BaseView {
   override def newContent(): String = {
     try {
       val form = context.form()
-      if(Users.checkPassword(form.get("email"), form.get("password"))){
+      if (Users.checkPassword(form.get("email"), form.get("password"))) {
         Components.AlertCompt(
           s"欢迎你 ${form.get("email")}",
           Components.AlertType.success
@@ -75,8 +72,8 @@ class RegisterPost(context: Context) extends BaseView {
       new Index(
         context,
         Components.AlertCompt(
-            s"欢迎你 ${form.get("email")}, 你已注册成功, 请登录",
-            Components.AlertType.success
+          s"欢迎你 ${form.get("email")}, 你已注册成功, 请登录",
+          Components.AlertType.success
         )).newContent()
     } catch {
       case EmailError(msg) => new Register(context, Components.AlertCompt(msg, Components.AlertType.danger)).newContent()

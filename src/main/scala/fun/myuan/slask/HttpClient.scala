@@ -1,4 +1,5 @@
 package fun.myuan.slask
+
 import java.io.{BufferedReader, InputStream, InputStreamReader, OutputStream}
 import java.net.{InetSocketAddress, ServerSocket, SocketAddress}
 
@@ -17,7 +18,7 @@ class HttpClient() {
     while (true) {
       try {
         val socket = this.socket.accept
-//        println("conn: " + socket.getRemoteSocketAddress)
+        //        println("conn: " + socket.getRemoteSocketAddress)
 
         val in_buffer = new BufferedReader(new InputStreamReader(socket.getInputStream));
         val startLine = in_buffer.readLine()
@@ -34,7 +35,7 @@ class HttpClient() {
             val context: Future[Context] = Future {
               buildContext(in_buffer)
             }
-            context onComplete{
+            context onComplete {
 
               case Success(value) =>
                 value.startLine = startLine
@@ -56,7 +57,8 @@ class HttpClient() {
       }
     }
   }
-  def buildContext(in_buffer: BufferedReader): Context ={
+
+  def buildContext(in_buffer: BufferedReader): Context = {
     var flag = true
     val context: Context = new Context
     var continuousBlankCount = 0
@@ -64,7 +66,7 @@ class HttpClient() {
       //接收从客户端发送过来的数据
       val line = in_buffer.readLine()
 
-//      println("got: " + line)
+      //      println("got: " + line)
       if (line == null) {
         flag = false
       } else if (line == "") {
@@ -80,7 +82,7 @@ class HttpClient() {
       }
     }
 
-    if (context.getHeader("Content-Length") != ""){
+    if (context.getHeader("Content-Length") != "") {
       val length = context.getHeader("Content-Length").toInt
 
       val bytes = new Array[Char](length)
@@ -89,7 +91,6 @@ class HttpClient() {
       context.sourceText += "\r\n" + bytes.mkString
     }
 
-    println(context.body.mkString)
     context
   }
 }

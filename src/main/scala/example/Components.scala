@@ -1,8 +1,8 @@
 package example
 
-object Components{
+object Components {
 
-  def FormCompt(title: String, action: String="", showRegister: Boolean=false): String = {
+  def FormCompt(title: String, action: String = "", showRegister: Boolean = false): String = {
     s"""<h1>${title}</h1>
        |<div class='login-form'>
        |  <form action="${action}" method="post">
@@ -23,13 +23,14 @@ object Components{
 
   object AlertType extends Enumeration {
     type AlertType = Value
-    val primary, secondary, success, danger, warning, light, dark = Value//在这里定义具体的枚举实例
+    val primary, secondary, success, danger, warning, light, dark = Value
   }
+
   def AlertCompt(message: String, alertType: AlertType.Value): String = {
     s"""<div class="alert alert-${alertType}" role="alert">
-      |  ${message}
-      |</div>
-      |""".stripMargin
+       |  ${message}
+       |</div>
+       |""".stripMargin
   }
 }
 
