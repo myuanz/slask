@@ -26,7 +26,10 @@ object Components{
     val primary, secondary, success, danger, warning, light, dark = Value//在这里定义具体的枚举实例
   }
   def AlertCompt(message: String, alertType: AlertType.Value): String = {
-    ""
+    s"""<div class="alert alert-${alertType}" role="alert">
+      |  ${message}
+      |</div>
+      |""".stripMargin
   }
 }
 
