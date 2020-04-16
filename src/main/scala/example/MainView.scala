@@ -36,37 +36,54 @@ class BaseView() extends HTMLResponse("Index") {
        |""".stripMargin
 }
 
-class Index(context: Context) extends BaseView {
-  Components
-  override def newContent(): String = Components.FormCompt("登录", "Login", showRegister = true)
+class Index(context: Context, addition: String = "") extends BaseView {
+  override def newContent(): String = addition + Components.FormCompt("登录", "Login", showRegister = true)
 }
-class Register(context: Context) extends BaseView {
-  override def newContent(): String = Components.FormCompt("注册", "Register")
+
+class Register(context: Context, addition: String = "") extends BaseView {
+  override def newContent(): String = addition + Components.FormCompt("注册", "Register")
 }
 
 class Login(context: Context) extends BaseView {
-  
   override def newContent(): String = {
-    var _newContent = "未找到数据"
-
-    println(context.url().path, context.url().method, context.form().form)
-
     try {
       val form = context.form()
-      Users.checkPassword(form.get("email"), form.get("password"))
-      _newContent = s"欢迎你: ${context.form().get("email", "")}"
-
+      if(Users.checkPassword(form.get("email"), form.get("password"))){
+        Components.AlertCompt(
+          s"欢迎你 ${form.get("email")}",
+          Components.AlertType.success
+        )
+      } else {
+        new Index(context, Components.AlertCompt(
+          s"账号或密码错误",
+          Components.AlertType.danger
+        )).newContent()
+      }
     } catch {
-      case EmailError(msg) =>
+      case EmailError(msg) => new Index(
+        context, Components.AlertCompt(msg, Components.AlertType.danger)
+      ).newContent()
     }
-    if(context.form().get("email", "") != ""){
-    }
-    _newContent
   }
 }
+
 class RegisterPost(context: Context) extends BaseView {
-  override def newContent(): String = "注册成功"
+  override def newContent(): String = {
+    try {
+      val form = context.form()
+      Users.addUser(form.get("email"), form.get("password"))
+      new Index(
+        context,
+        Components.AlertCompt(
+            s"欢迎你 ${form.get("email")}, 你已注册成功, 请登录",
+            Components.AlertType.success
+        )).newContent()
+    } catch {
+      case EmailError(msg) => new Register(context, Components.AlertCompt(msg, Components.AlertType.danger)).newContent()
+    }
+  }
 }
+
 case class MainView() {
   var view = new Blueprints
   view.+=(Router("GET", "/", context => new Index(context)))
